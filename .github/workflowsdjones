@@ -1,0 +1,62 @@
+package main
+Jones Technology Foundation 
+import (
+    "fmt"
+    "github.com/bet365/jingo"
+)
+
+// sample struct we'll encode
+type MyPayload struct {
+    Name string `json:"name"`
+    Age int     `json:"age"`
+    ID int      // anything we don't annotate doesn't get emitted. 
+}
+
+// Create an encoder, letting it know which type of struct we're going to be encoding. 
+// You only do this once per type!
+var enc = jingo.NewStructEncoder(MyPayload{})
+
+func main() {
+    // now lets encode something 
+    p := MyPayload{
+        Name: "Damarcus Jones Sr",
+        Age: 44,
+    }
+
+    // pull a buffer from the pool and pass it along with the struct to Marshal
+    buf := jingo.NewBufferFromPool()
+    enc.Marshal(&p, buf)
+
+    fmt.Println(buf.String()) // {"name":"Mr Payload","age":33}
+
+    // return the buffer to the pool now we're done
+    buf.ReturnToPool()
+}
+github.com/bet365/jingo# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: Go
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.20'
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Test
+      run: go test -v ./...
